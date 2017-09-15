@@ -1,0 +1,42 @@
+<idea-plugin>
+    <id>com.mymdpastepic.id</id>
+    <name>mymdpastepic</name>
+    <version>1.0.2</version>
+    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+
+    <description><![CDATA[
+      Enter short description for your plugin here.<br>
+      <em>most HTML tags may be used</em>
+    ]]></description>
+
+    <change-notes><![CDATA[
+      Add change notes here.<br>
+      <em>most HTML tags may be used</em>
+    ]]>
+    </change-notes>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <idea-version since-build="145.0"/>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <!-- uncomment to enable plugin in all products
+    <depends>com.intellij.modules.lang</depends>
+    -->
+    <depends>com.intellij.modules.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <editorActionHandler action="EditorPaste" implementationClass="img2md.PasteImageHandler" order="first"/>
+    </extensions>
+
+    <actions>
+        <action id="mymdpastepic" class="img2md.PasteImageFromClipboard" text="mymdpastepic"
+                description="Paste an image from clipboard at the current cursor position">
+            <add-to-group group-id="EditMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="shift meta V"/>
+        </action>
+    </actions>
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable instance="setting.MySetting"/>
+    </extensions>
+</idea-plugin>
