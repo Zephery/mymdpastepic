@@ -12,14 +12,12 @@ import org.slf4j.LoggerFactory;
 
 public class QiniuUtil {
     //自己的七牛
-//    private static final String ACCESS_KEY = "QN3U7hRV4WYTmNSPJLVGCfuthzwN2MsDnPojtaZ4";
-//    private static final String SECRET_KEY = "4qqIC6qDc4-KNfSqbG3WOvgSEN8mZx5zEDOsAdo8";
     private static Logger log = LoggerFactory.getLogger(QiniuUtil.class);
-    private static final Configuration cfg = new Configuration(Zone.zone0());
+    public  static final Configuration cfg = new Configuration(Zone.zone0());
     //...其他参数参考类注释
-    private static final UploadManager uploadManager = new UploadManager(cfg);
+    public  static final UploadManager uploadManager = new UploadManager(cfg);
 
-    private static String getToken(String bucket) {
+    public  static String getToken(String bucket) {
         System.out.println("qiniuyun");
         String access_key = PropertiesComponent.getInstance().getValue("ACCESS_KEY");
         String secret_key = PropertiesComponent.getInstance().getValue("SECRET_KEY");

@@ -12,6 +12,8 @@ package img2md;
  */
 public class Main {
     public boolean sendpic(String filepath) {
+
         return true;
+
     }
 }

@@ -39,4 +39,9 @@
     <extensions defaultExtensionNs="com.intellij">
         <applicationConfigurable instance="setting.MySetting"/>
     </extensions>
+    <application-components>
+        <component>
+            <implementation-class>setting.aaa</implementation-class>
+        </component>
+    </application-components>
 </idea-plugin>
