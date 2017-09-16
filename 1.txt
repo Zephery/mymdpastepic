@@ -61,54 +61,19 @@ public class PasteImageFromClipboard extends AnAction {
         BufferedImage bufferedImage = toBufferedImage(imageFromClipboard);
         if (bufferedImage == null) return;
         Dimension dimension = new Dimension(bufferedImage.getWidth(), bufferedImage.getHeight());
-//        ImageInsertSettingsPanel insertSettingsPanel = showDialog(curDocument, dimension);
-//        if (insertSettingsPanel == null) return;
+
         String imageName="fjoiwjefaojeofie";
-//        boolean whiteAsTransparent = insertSettingsPanel.getWhiteCheckbox().isSelected();
-//        boolean roundCorners = insertSettingsPanel.getRoundCheckbox().isSelected();
-//        double scalingFactor = ((Integer) insertSettingsPanel.getScaleSpinner().getValue()) * 0.01;
-//        if (whiteAsTransparent) {
-//            bufferedImage = toBufferedImage(whiteToTransparent(bufferedImage));
-//        }
-//        if (roundCorners) {
-//            bufferedImage = toBufferedImage(makeRoundedCorner(bufferedImage, 20));
-//        }
-//        if (scalingFactor != 1) {
-//            bufferedImage = scaleImage(bufferedImage,
-//                    (int) Math.round(bufferedImage.getWidth() * scalingFactor),
-//                    (int) Math.round(bufferedImage.getHeight() * scalingFactor));
-//        }
-        // make selectable
-//        File imageDir = new File(curDocument.getParent(), ".images");
+
         String mdBaseName = curDocument.getName().replace(".md", "").replace(".Rmd", "");
-//        File imageDir = new File(curDocument.getParent(), "."+ mdBaseName +"_images");
         String dirPattern = "images";
         File imageDir = new File(curDocument.getParent(), dirPattern.replace(DOC_BASE_NAME, mdBaseName));
         if (!imageDir.exists() || !imageDir.isDirectory()) imageDir.mkdirs();
         File imageFile = new File(imageDir, imageName + ".png");
-        // todo should we silently override the image if it is already present?
         save(bufferedImage, imageFile, "png");
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
         String temp = sdf.format(new Date());
         String imagepath = imageName + temp + ".png";
         String imageurl = "http://ohlrxdl4p.bkt.clouddn.com/images/" + imagepath;
-//        PropertiesComponent.getInstance()
-
-//        VirtualFile baseDir = e.getProject().getBaseDir();
-//        final VirtualFile targetDir = baseDir.getFileSystem().findFileByPath(imageFile.getParentFile().getAbsolutePath());
-//        if(targetDir != null) {
-//            WriteCommandAction.runWriteCommandAction(e.getProject(), new Runnable() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        targetDir.createChildData(this, imageFile.getName());
-//                    } catch (IOException e1) {
-//                        e1.printStackTrace();
-//                    }
-//                }
-//            });
-//        }
-
         // inject image element current markdown document
         insertImageElement(ed, imageurl);
         // https://intellij-support.jetbrains.com/hc/en-us/community/posts/206144389-Create-virtual-file-from-file-path
@@ -129,47 +94,5 @@ public class PasteImageFromClipboard extends AnAction {
         WriteCommandAction.runWriteCommandAction(editor.getProject(), r);
     }
 
-    // for more examples see
-//    http://www.programcreek.com/java-api-examples/index.php?api=com.intellij.openapi.ui.DialogWrapper
-//    private static ImageInsertSettingsPanel showDialog(File curDocument, Dimension imgDim) {
-//        DialogBuilder builder = new DialogBuilder();
-//        ImageInsertSettingsPanel contentPanel = new ImageInsertSettingsPanel();
-//        ChangeListener listener = new ChangeListener() {
-//            @Override
-//            public void stateChanged(ChangeEvent e) {
-//                double scalingFactor = (Integer) contentPanel.getScaleSpinner().getValue() * 0.1;
-//
-//                JLabel targetSizeLabel = contentPanel.getTargetSizeLabel();
-//
-//                if (scalingFactor == 100) {
-//                    targetSizeLabel.setText(imgDim.getWidth() + " x " + imgDim.getHeight());
-//
-//                } else {
-//                    long newWidth = Math.round(imgDim.getWidth() * scalingFactor);
-//                    long newHeight = Math.round(imgDim.getHeight() * scalingFactor);
-//
-//                    targetSizeLabel.setText(newWidth + " x " + newHeight);
-//                }
-//            }
-//        };
-//        listener.stateChanged(null);
-//        contentPanel.getScaleSpinner().addChangeListener(listener);
-//        String dirPattern = "images"; //TODO 目录直接修改为images
-//        contentPanel.getDirectoryField().setText(dirPattern);
-//        contentPanel.getNameInput().setText(UUID.randomUUID().toString().substring(0, 8));
-//        builder.setCenterPanel(contentPanel);
-//        builder.setDimensionServiceKey("GrepConsoleSound");
-//        builder.setTitle("Paste Image Settings");
-//        builder.removeAllActions();
-//        builder.addOkAction();
-//        builder.addCancelAction();
-//        builder.setPreferredFocusComponent(contentPanel.getNameInput());
-//        boolean isOk = builder.show() == DialogWrapper.OK_EXIT_CODE;
-//        if (!isOk) {
-//            return null;
-//        }
-//        return contentPanel;
-//    }
-//}
-//
+
 }

@@ -1,8 +1,8 @@
 <idea-plugin>
-    <id>com.mymdpastepic.id</id>
-    <name>mymdpastepic</name>
-    <version>1.0.2</version>
-    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+    <id>com.PastePic.id</id>
+    <name>PastePic</name>
+    <version>1.0.4242</version>
+    <vendor email="1570631036@qq.com" url="http://www.wenzhihuai.com">http://www.wenzhihuai.com</vendor>
 
     <description><![CDATA[
       Enter short description for your plugin here.<br>
@@ -30,7 +30,7 @@
     </extensions>
 
     <actions>
-        <action id="mymdpastepic" class="img2md.PasteImageFromClipboard" text="mymdpastepic"
+        <action id="PastePic" class="img2md.PasteImageFromClipboard" text="PastePic"
                 description="Paste an image from clipboard at the current cursor position">
             <add-to-group group-id="EditMenu" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="shift meta V"/>

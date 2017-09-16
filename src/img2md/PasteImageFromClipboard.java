@@ -24,6 +24,9 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -53,80 +56,114 @@ public class PasteImageFromClipboard extends AnAction {
             builder.show();
             return;
         }
-        // from http://stackoverflow.com/questions/17915688/intellij-plugin-get-code-from-current-open-file
-        Document currentDoc = FileEditorManager.getInstance(ed.getProject()).getSelectedTextEditor().getDocument();
-        VirtualFile currentFile = FileDocumentManager.getInstance().getFile(currentDoc);
-        File curDocument = new File(currentFile.getPath());
-        // add option to rescale image on the fly
-        BufferedImage bufferedImage = toBufferedImage(imageFromClipboard);
-        if (bufferedImage == null) return;
-        Dimension dimension = new Dimension(bufferedImage.getWidth(), bufferedImage.getHeight());
-        ImageInsertSettingsPanel insertSettingsPanel = showDialog(curDocument, dimension);
-        if (insertSettingsPanel == null) return;
-        String imageName = insertSettingsPanel.getNameInput().getText();
-        boolean whiteAsTransparent = insertSettingsPanel.getWhiteCheckbox().isSelected();
-        boolean roundCorners = insertSettingsPanel.getRoundCheckbox().isSelected();
-        double scalingFactor = ((Integer) insertSettingsPanel.getScaleSpinner().getValue()) * 0.01;
-        if (whiteAsTransparent) {
-            bufferedImage = toBufferedImage(whiteToTransparent(bufferedImage));
-        }
-        if (roundCorners) {
-            bufferedImage = toBufferedImage(makeRoundedCorner(bufferedImage, 20));
-        }
-        if (scalingFactor != 1) {
-            bufferedImage = scaleImage(bufferedImage,
-                    (int) Math.round(bufferedImage.getWidth() * scalingFactor),
-                    (int) Math.round(bufferedImage.getHeight() * scalingFactor));
-        }
-        // make selectable
+        boolean yes = PropertiesComponent.getInstance().getBoolean("yes");
+        String callback_url = PropertiesComponent.getInstance().getValue("CALLBACK_URL");
+        if (yes) {
+            // from http://stackoverflow.com/questions/17915688/intellij-plugin-get-code-from-current-open-file
+            Document currentDoc = FileEditorManager.getInstance(ed.getProject()).getSelectedTextEditor().getDocument();
+            VirtualFile currentFile = FileDocumentManager.getInstance().getFile(currentDoc);
+            File curDocument = new File(currentFile.getPath());
+            // add option to rescale image on the fly
+            BufferedImage bufferedImage = toBufferedImage(imageFromClipboard);
+            if (bufferedImage == null) return;
+            Dimension dimension = new Dimension(bufferedImage.getWidth(), bufferedImage.getHeight());
+
+            String imageName = "";
+
+            String mdBaseName = curDocument.getName().replace(".md", "").replace(".Rmd", "");
+            String dirPattern = "images";
+            File imageDir = new File(curDocument.getParent(), dirPattern.replace(DOC_BASE_NAME, mdBaseName));
+            if (!imageDir.exists() || !imageDir.isDirectory()) imageDir.mkdirs();
+            File imageFile = new File(imageDir, imageName + ".png");
+            save(bufferedImage, imageFile, "png");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
+            String temp = sdf.format(new Date());
+            String imagepath = imageName + temp + ".png";
+            String imageurl = callback_url + imagepath;
+            QiniuUtil.putFile("images", "images/" + imagepath, imageFile.getPath());
+            // inject image element current markdown document
+            insertImageElement(ed, imageurl);
+            // https://intellij-support.jetbrains.com/hc/en-us/community/posts/206144389-Create-virtual-file-from-file-path
+            VirtualFile fileByPath = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(imageFile);
+            assert fileByPath != null;
+            AbstractVcs usedVcs = ProjectLevelVcsManager.getInstance(ed.getProject()).getVcsFor(fileByPath);
+            if (usedVcs != null && usedVcs.getCheckinEnvironment() != null) {
+                usedVcs.getCheckinEnvironment().scheduleUnversionedFilesForAddition(Collections.singletonList(fileByPath));
+            }
+            // update directory pattern preferences for file and globally
+            PropertiesComponent.getInstance().setValue("PI__LAST_DIR_PATTERN", dirPattern);
+            PropertiesComponent.getInstance().setValue("PI__DIR_PATTERN_FOR_" + currentFile.getPath(), dirPattern);
+        } else {
+            // from http://stackoverflow.com/questions/17915688/intellij-plugin-get-code-from-current-open-file
+            Document currentDoc = FileEditorManager.getInstance(ed.getProject()).getSelectedTextEditor().getDocument();
+            VirtualFile currentFile = FileDocumentManager.getInstance().getFile(currentDoc);
+            File curDocument = new File(currentFile.getPath());
+            // add option to rescale image on the fly
+            BufferedImage bufferedImage = toBufferedImage(imageFromClipboard);
+            if (bufferedImage == null) return;
+            Dimension dimension = new Dimension(bufferedImage.getWidth(), bufferedImage.getHeight());
+            ImageInsertSettingsPanel insertSettingsPanel = showDialog(curDocument, dimension);
+            if (insertSettingsPanel == null) return;
+            String imageName = insertSettingsPanel.getNameInput().getText();
+            boolean whiteAsTransparent = insertSettingsPanel.getWhiteCheckbox().isSelected();
+            boolean roundCorners = insertSettingsPanel.getRoundCheckbox().isSelected();
+            double scalingFactor = ((Integer) insertSettingsPanel.getScaleSpinner().getValue()) * 0.01;
+            if (whiteAsTransparent) {
+                bufferedImage = toBufferedImage(whiteToTransparent(bufferedImage));
+            }
+            if (roundCorners) {
+                bufferedImage = toBufferedImage(makeRoundedCorner(bufferedImage, 20));
+            }
+            if (scalingFactor != 1) {
+                bufferedImage = scaleImage(bufferedImage,
+                        (int) Math.round(bufferedImage.getWidth() * scalingFactor),
+                        (int) Math.round(bufferedImage.getHeight() * scalingFactor));
+            }
+            // make selectable
 //        File imageDir = new File(curDocument.getParent(), ".images");
-        String mdBaseName = curDocument.getName().replace(".md", "").replace(".Rmd", "");
+            String mdBaseName = curDocument.getName().replace(".md", "").replace(".Rmd", "");
 //        File imageDir = new File(curDocument.getParent(), "."+ mdBaseName +"_images");
-        String dirPattern = insertSettingsPanel.getDirectoryField().getText();
-        File imageDir = new File(curDocument.getParent(), dirPattern.replace(DOC_BASE_NAME, mdBaseName));
-        if (!imageDir.exists() || !imageDir.isDirectory()) imageDir.mkdirs();
-        File imageFile = new File(imageDir, imageName + ".png");
-        // todo should we silently override the image if it is already present?
-        save(bufferedImage, imageFile, "png");
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
-        String temp = sdf.format(new Date());
-        String imagepath = imageName + temp + ".png";
-        QiniuUtil.putFile("images", "images/" + imagepath, imageFile.getPath());
-        String imageurl = "http://ohlrxdl4p.bkt.clouddn.com/images/" + imagepath;
-//        PropertiesComponent.getInstance()
+            String dirPattern = insertSettingsPanel.getDirectoryField().getText();
+            File imageDir = new File(curDocument.getParent(), dirPattern.replace(DOC_BASE_NAME, mdBaseName));
+            if (!imageDir.exists() || !imageDir.isDirectory()) imageDir.mkdirs();
+            File imageFile = new File(imageDir, imageName + ".png");
+            // todo should we silently override the image if it is already present?
+            save(bufferedImage, imageFile, "png");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
+            String temp = sdf.format(new Date());
+            String imagepath = imageName + temp + ".png";
+            QiniuUtil.putFile("images", "images/" + imagepath, imageFile.getPath());
+            String imageurl = callback_url + imagepath;
+            try {
+                File file = new File(System.getProperty("user.dir"));//类路径(包文件上一层)
+                URL url = file.toURI().toURL();
+                ClassLoader loader = new URLClassLoader(new URL[]{url});//创建类加载器
+                System.out.println("loader");
+                Class<?> cls = loader.loadClass("Main");//加载指定类，注意一定要带上类的包名
+                Object obj = cls.newInstance();//初始化一个实例
+                Method method = cls.getMethod("sendpic", String.class);//方法名和对应的参数类型
+                method.invoke(obj, imagepath);//调用得到的上边的方法method
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            }
 
-//        VirtualFile baseDir = e.getProject().getBaseDir();
-//        final VirtualFile targetDir = baseDir.getFileSystem().findFileByPath(imageFile.getParentFile().getAbsolutePath());
-//        if(targetDir != null) {
-//            WriteCommandAction.runWriteCommandAction(e.getProject(), new Runnable() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        targetDir.createChildData(this, imageFile.getName());
-//                    } catch (IOException e1) {
-//                        e1.printStackTrace();
-//                    }
-//                }
-//            });
-//        }
-
-        // inject image element current markdown document
-        insertImageElement(ed, imageurl);
-        // https://intellij-support.jetbrains.com/hc/en-us/community/posts/206144389-Create-virtual-file-from-file-path
-        VirtualFile fileByPath = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(imageFile);
-        assert fileByPath != null;
-        AbstractVcs usedVcs = ProjectLevelVcsManager.getInstance(ed.getProject()).getVcsFor(fileByPath);
-        if (usedVcs != null && usedVcs.getCheckinEnvironment() != null) {
-            usedVcs.getCheckinEnvironment().scheduleUnversionedFilesForAddition(Collections.singletonList(fileByPath));
+            // inject image element current markdown document
+            insertImageElement(ed, imageurl);
+            // https://intellij-support.jetbrains.com/hc/en-us/community/posts/206144389-Create-virtual-file-from-file-path
+            VirtualFile fileByPath = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(imageFile);
+            assert fileByPath != null;
+            AbstractVcs usedVcs = ProjectLevelVcsManager.getInstance(ed.getProject()).getVcsFor(fileByPath);
+            if (usedVcs != null && usedVcs.getCheckinEnvironment() != null) {
+                usedVcs.getCheckinEnvironment().scheduleUnversionedFilesForAddition(Collections.singletonList(fileByPath));
+            }
+            // update directory pattern preferences for file and globally
+            PropertiesComponent.getInstance().setValue("PI__LAST_DIR_PATTERN", dirPattern);
+            PropertiesComponent.getInstance().setValue("PI__DIR_PATTERN_FOR_" + currentFile.getPath(), dirPattern);
         }
-        // update directory pattern preferences for file and globally
-        PropertiesComponent.getInstance().setValue("PI__LAST_DIR_PATTERN", dirPattern);
-        PropertiesComponent.getInstance().setValue("PI__DIR_PATTERN_FOR_" + currentFile.getPath(), dirPattern);
     }
 
     private void insertImageElement(final @NotNull Editor editor, String imageurl) {
         Runnable r = () -> EditorModificationUtil.insertStringAtCaret(editor, "![](" + imageurl + ")");
-
         WriteCommandAction.runWriteCommandAction(editor.getProject(), r);
     }
 
