@@ -10,6 +10,8 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -67,7 +69,6 @@ public class ImageUtils {
         if (w < 0 || h < 0) {
             return null;
         }
-
         int type = BufferedImage.TYPE_INT_ARGB;  // other options
         BufferedImage dest = new BufferedImage(w, h, type);
         Graphics2D g2 = dest.createGraphics();
@@ -224,6 +225,20 @@ public class ImageUtils {
 
     }
 
+    public static ByteArrayInputStream bufferimagetobyteArray(BufferedImage bufferedImage) {
+        byte[] array = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
+        return new ByteArrayInputStream(array);
+    }
+
+    public static byte[] imageToBytes(Image image, String format, BufferedImage bImage) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(bImage, format, out);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return out.toByteArray();
+    }
 
 //    /**
 //     * http://stackoverflow.com/questions/8039444/how-to-detect-corrupted-images-png-jpg-in-java

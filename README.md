@@ -1,20 +1,28 @@
 # Markdown paste image
-每次在idea的markdown中要粘贴图片的时候，要么复制链接，要么需要将软件手动上传到七牛云，本人根据了[holgerbrandl/pasteimages](https://github.com/holgerbrandl/pasteimages)这个本地的软件修改了下源码，变成了现在的作品，同时，还能支持扩展，但是这部分还没完成
+每次在idea的markdown中要粘贴图片的时候，要么复制链接，要么需要将软件手动上传到七牛云，本人根据了[holgerbrandl/pasteimages](https://github.com/holgerbrandl/pasteimages)这个本地的软件修改了下源码，变成了现在的作品，同时，还能支持扩展，但是这部分还没完成，代码存放[位置](https://github.com/Zephery/mymdpastepic)，插件[下载地址](https://raw.githubusercontent.com/Zephery/mymdpastepic/master/mymdpastepic.zip)
 此工具可运行在Intellij、Python、PhpStorm等jetbrains的所有软件中，使用效果如下：
+<div align="center">
 
+![](http://ohlrxdl4p.bkt.clouddn.com/1111111113r413523.gif)
 
-
+</div>
 
 
 
 ## 插件开发过程
-1.搭建环境
-2.实现Action接口
-3.Setting的设置
-4.拓展其他云
+1.搭建环境  
+2.实现Action接口  
+3.Setting的设置  
+4.拓展cdn  
+5.插件打包  
+
 ## 整体介绍
+主要是逻辑的关系，plugin.xml为配置文件、PasteImageHandler控制器，如果是ctrl+v这个动作，则进入PasteImageFromClipboard，然后开始逻辑判断
+<div align="center">
 
 ![](http://ohlrxdl4p.bkt.clouddn.com/images/20170916072026.png)
+
+</div>
 
 ## 1.搭建环境
 由于使用的是idea的旗舰版，软件中自带了idea的插件开发包，new->project，选择plugin
@@ -70,7 +78,7 @@
 ```
 
 ## 2.实现接口
-Hello World的讲解看看这位[作者](http://blog.csdn.net/liuloua/article/details/51917362)的吧。
+Hello World的讲解看看这位[作者](http://blog.csdn.net/liuloua/article/details/51917362)的吧。  
 （1）首先，在img2md中定义一个PasteImageHandler类，并在xml中注册，该类的意思是是每次在markdown文件中使用ctrl+v(粘贴)的时候，先调用下面这个函数，如果符合条件，则进入：PasteImageFromClipboard。
 ```java
 if ("Markdown".equals(fileType.getName())) {
@@ -124,7 +132,7 @@ plugin.xml的配置文件如下：
 
 </div>
 
-实现过程：
+实现过程：  
 （1）右键，new>GUI FORM:
 <div align="center">
 
@@ -161,8 +169,71 @@ public interface UnnamedConfigurable {
 
 ```
 保存填写的信息，idea sdk给我们提供了一个api，PropertiesComponent.getInstance()，感觉略像缓存，有人说保存在xml中，具体我也不太了解，有待深入。
+（4）配置PasteImageFromClipboard的流程：
+- 判断上传的图片是否为空，如果为空，则弹出提示框
+- 判断当前文件是不是markdown的文件，如果是，进入编辑阶段
+- 判断是否以简洁模式（即ctrl+v后不弹出选项框）
+- 讲"![]()"配置到markdown中
+- 操作成功。
+有兴趣可以看看[代码](https://github.com/Zephery/mymdpastepic/blob/master/src/img2md/PasteImageFromClipboard.java)  
 
+（5）七牛云的使用
+使用七牛云的时候，需要将七牛云sdk以及其依赖的一个一个包都手动导进去，用不了maven。
 
+<div align="center">
+
+![](http://ohlrxdl4p.bkt.clouddn.com/images/1a137b8b20170917025333.png)
+
+</div>
+
+然后写一个QiniuUtil，用来上传文件：
+```java
+public class QiniuUtil {
+    //自己的七牛
+    private static Logger log = LoggerFactory.getLogger(QiniuUtil.class);
+    public static final Configuration cfg = new Configuration(Zone.zone0());
+    //...其他参数参考类注释
+    public static final UploadManager uploadManager = new UploadManager(cfg);
+
+    public static String getToken(String bucket) {//获取七牛的token
+        System.out.println("qiniuyun");
+        String access_key = PropertiesComponent.getInstance().getValue("ACCESS_KEY");
+        String secret_key = PropertiesComponent.getInstance().getValue("SECRET_KEY");
+        if (access_key != null && secret_key != null) {
+            Auth auth = Auth.create(access_key, secret_key);
+            String token = auth.uploadToken(bucket);
+            return token;
+        } else {
+            return null;
+        }
+
+    }
+
+    public static void putFile(String bucket, String key, String filePath) {//上传文件，第一个是bucket，第二个是文件名，第三个是文件的路径
+        try {
+            Response res = uploadManager.put(filePath, key, getToken(bucket));
+            if (!res.isOK()) {
+                log.error("Upload to qiniu failed;File path: " + filePath + ";Error: " + res.error);
+            }
+        } catch (QiniuException e) {
+            e.printStackTrace();
+            Response r = e.response;
+            log.error(r.toString());
+            try {
+                log.error(r.bodyString());
+            } catch (QiniuException e1) {
+                log.error(e1.getMessage());
+            }
+        }
+    }
+}
+```
+
+之后，在PasteImageFromClipboard中添加保存的代码即可。
+```java
+QiniuUtil.putFile("images", "images/" + imagepath, imageFile.getPath());
+```
+如果想实现使用其他的，比如腾讯云、阿里云、又拍云这些，添加方式可以像七牛云一样，添加包，写个util即可，但是，当今的做云的越来越多，不能一一实现，我们可以提供一个模板，供开发者使用，只要自己实现了代码添加包即可。
 
 
 ## 4.拓展其他云  
@@ -175,7 +246,7 @@ public class Main {
 }
 ```
 
-填写完代码之后，还仍需一个添加包的列表，添加完包之后进行调试，这里采用java的动态部署，生成动态类
+填写完代码之后，还仍需一个添加包的列表，添加完包之后进行调试，这里采用java的动态部署，生成动态类，规定主函数为Main，必须有个sendpic的方法，将图片的路径传过去，自己实现上传的代码
 ```java
 testYourCodeButton.addActionListener(new ActionListener() {
     @Override
@@ -187,7 +258,7 @@ testYourCodeButton.addActionListener(new ActionListener() {
             Class<?> cls = loader.loadClass("Main");//加载指定类，注意一定要带上类的包名
             Object obj = cls.newInstance();//初始化一个实例
             Method method = cls.getMethod("sendpic", String.class);//方法名和对应的参数类型
-            String imagepath = "1.png";
+            String imagepath = "1.png";//用来测试的图片
             String success = method.invoke(obj, imagepath).toString();//调用得到的上边的方法method
             if (!success.equals("true")) {
                 StringBuilder stringBuilder = new StringBuilder(Common.ERROR_CODE);
@@ -215,4 +286,15 @@ try {
     ee.printStackTrace();
 }
 ```
-当然，这些都仅仅是我的设想。。。。由于996，实在没时间去实现了，各位有兴趣可以去fork一下，[链接点这](https://github.com/Zephery/mymdpastepic)
+当然，拓展使用其他cdn仅仅是我的设想。。。。由于996，实在没时间去实现了，各位有兴趣可以去star或者fork一下，[链接点这](https://github.com/Zephery/mymdpastepic)
+
+## 5.插件打包
+写好代码之后，需要打包让自己或者别人使用，右键项目—>prepare plugin module xxx for deployment，然后在项目的目录就可以看到一个zip包，然后，在setting的plugin中install plugin from disk即可。
+
+昨天，发现这个项目已经有人实现了，比我造了三天，还传到了jetbrains的公共仓库，感觉写的比我的好，大家可以使用一下
+<div align="center">
+
+![](http://ohlrxdl4p.bkt.clouddn.com/images/ce2378a820170917030909.png)
+
+</div>
+同时，欢迎访问我的[个人网站](http://www.wenzhihuai.com),要是能star一下我的网站的代码就更好了[网站代码](https://github.com/Zephery/newblog)，感谢

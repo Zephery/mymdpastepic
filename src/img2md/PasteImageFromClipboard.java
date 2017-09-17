@@ -23,6 +23,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -59,40 +60,31 @@ public class PasteImageFromClipboard extends AnAction {
         boolean yes = PropertiesComponent.getInstance().getBoolean("yes");
         String callback_url = PropertiesComponent.getInstance().getValue("CALLBACK_URL");
         if (yes) {
-            // from http://stackoverflow.com/questions/17915688/intellij-plugin-get-code-from-current-open-file
             Document currentDoc = FileEditorManager.getInstance(ed.getProject()).getSelectedTextEditor().getDocument();
             VirtualFile currentFile = FileDocumentManager.getInstance().getFile(currentDoc);
-            File curDocument = new File(currentFile.getPath());
-            // add option to rescale image on the fly
-            BufferedImage bufferedImage = toBufferedImage(imageFromClipboard);
-            if (bufferedImage == null) return;
-            Dimension dimension = new Dimension(bufferedImage.getWidth(), bufferedImage.getHeight());
+            try {
+                File curDocument = new File(currentFile.getPath());
+                // add option to rescale image on the fly
+                BufferedImage bufferedImage = toBufferedImage(imageFromClipboard);
+                if (bufferedImage == null) return;
+                String imageName = "";
+                String mdBaseName = curDocument.getName().replace(".md", "").replace(".Rmd", "");
+                String dirPattern = "images";
+                File imageDir = new File(curDocument.getParent(), dirPattern.replace(DOC_BASE_NAME, mdBaseName));
+                if (!imageDir.exists() || !imageDir.isDirectory()) imageDir.mkdirs();
+                File imageFile = new File(imageDir, imageName + ".png");
+                save(bufferedImage, imageFile, "png");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
+                String temp = sdf.format(new Date());
+                String imagepath = imageName + temp + ".png";
+                String imageurl = callback_url + imagepath;
+                QiniuUtil.putFile("images", "images/" + imagepath, imageFile.getPath());
+                insertImageElement(ed, imageurl);
 
-            String imageName = "";
-
-            String mdBaseName = curDocument.getName().replace(".md", "").replace(".Rmd", "");
-            String dirPattern = "images";
-            File imageDir = new File(curDocument.getParent(), dirPattern.replace(DOC_BASE_NAME, mdBaseName));
-            if (!imageDir.exists() || !imageDir.isDirectory()) imageDir.mkdirs();
-            File imageFile = new File(imageDir, imageName + ".png");
-            save(bufferedImage, imageFile, "png");
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
-            String temp = sdf.format(new Date());
-            String imagepath = imageName + temp + ".png";
-            String imageurl = callback_url + imagepath;
-            QiniuUtil.putFile("images", "images/" + imagepath, imageFile.getPath());
-            // inject image element current markdown document
-            insertImageElement(ed, imageurl);
-            // https://intellij-support.jetbrains.com/hc/en-us/community/posts/206144389-Create-virtual-file-from-file-path
-            VirtualFile fileByPath = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(imageFile);
-            assert fileByPath != null;
-            AbstractVcs usedVcs = ProjectLevelVcsManager.getInstance(ed.getProject()).getVcsFor(fileByPath);
-            if (usedVcs != null && usedVcs.getCheckinEnvironment() != null) {
-                usedVcs.getCheckinEnvironment().scheduleUnversionedFilesForAddition(Collections.singletonList(fileByPath));
+            } catch (Exception eee) {
+                eee.printStackTrace();
             }
-            // update directory pattern preferences for file and globally
-            PropertiesComponent.getInstance().setValue("PI__LAST_DIR_PATTERN", dirPattern);
-            PropertiesComponent.getInstance().setValue("PI__DIR_PATTERN_FOR_" + currentFile.getPath(), dirPattern);
+
         } else {
             // from http://stackoverflow.com/questions/17915688/intellij-plugin-get-code-from-current-open-file
             Document currentDoc = FileEditorManager.getInstance(ed.getProject()).getSelectedTextEditor().getDocument();
