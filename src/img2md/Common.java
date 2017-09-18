@@ -18,4 +18,11 @@ public class Common {
     public final static String ERROR_CODE = "OOPS! Your code is wrong! Please check your code...\n" +
             "OOPS! Your code is wrong! Please check your code...\n" +
             "OOPS! Your code is wrong! Please check your code...\n";
+    public final static String COMMON_CODE = "<div align=\"center\">\n" +
+            "\n" +
+            "PICTUREURL\n" +
+            "\n" +
+            "</div>" +
+            "\n" +
+            "\n";
 }

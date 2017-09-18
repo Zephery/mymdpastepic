@@ -23,7 +23,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -155,7 +154,8 @@ public class PasteImageFromClipboard extends AnAction {
     }
 
     private void insertImageElement(final @NotNull Editor editor, String imageurl) {
-        Runnable r = () -> EditorModificationUtil.insertStringAtCaret(editor, "![](" + imageurl + ")");
+        String pictrueurl = "![](" + imageurl + ")";
+        Runnable r = () -> EditorModificationUtil.insertStringAtCaret(editor, Common.COMMON_CODE.replace("PICTUREURL", pictrueurl));
         WriteCommandAction.runWriteCommandAction(editor.getProject(), r);
     }
 
