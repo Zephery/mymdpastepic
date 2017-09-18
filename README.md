@@ -291,10 +291,11 @@ try {
 ## 5.插件打包
 写好代码之后，需要打包让自己或者别人使用，右键项目—>prepare plugin module xxx for deployment，然后在项目的目录就可以看到一个zip包，然后，在setting的plugin中install plugin from disk即可。
 
-昨天，发现这个项目已经有人实现了，比我造了三天，还传到了jetbrains的公共仓库，感觉写的比我的好，大家可以使用一下
+昨天，发现这个项目已经有人实现了，比我早了三天，还传到了jetbrains的公共仓库，感觉写的比我的好，大家可以使用一下
 <div align="center">
 
 ![](http://ohlrxdl4p.bkt.clouddn.com/images/ce2378a820170917030909.png)
 
 </div>
+
 同时，欢迎访问我的[个人网站](http://www.wenzhihuai.com),要是能star一下我的网站的代码就更好了[网站代码](https://github.com/Zephery/newblog)，感谢
