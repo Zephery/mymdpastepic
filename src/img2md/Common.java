@@ -1,10 +1,8 @@
 package img2md;
 
 /**
- * Created with IntelliJ IDEA.
  * User: Zephery
  * Time: 2017/9/16 14:52
- * Description:
  */
 public class Common {
     public final static String ORIGIN_CODE = "/**\n" +
@@ -15,9 +13,11 @@ public class Common {
             "        return true;\n" +
             "    }\n" +
             "}";
+
     public final static String ERROR_CODE = "OOPS! Your code is wrong! Please check your code...\n" +
             "OOPS! Your code is wrong! Please check your code...\n" +
             "OOPS! Your code is wrong! Please check your code...\n";
+
     public final static String COMMON_CODE = "<div align=\"center\">\n" +
             "\n" +
             "PICTUREURL\n" +
