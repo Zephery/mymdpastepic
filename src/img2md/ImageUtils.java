@@ -230,7 +230,7 @@ public class ImageUtils {
         return new ByteArrayInputStream(array);
     }
 
-    public static byte[] imageToBytes(Image image, String format, BufferedImage bImage) {
+    public static byte[] imageToBytes(String format, BufferedImage bImage) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             ImageIO.write(bImage, format, out);

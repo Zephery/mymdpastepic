@@ -36,7 +36,4 @@
             <keyboard-shortcut keymap="$default" first-keystroke="shift meta V"/>
         </action>
     </actions>
-    <extensions defaultExtensionNs="com.intellij">
-        <applicationConfigurable instance="setting.MySetting"/>
-    </extensions>
 </idea-plugin>
