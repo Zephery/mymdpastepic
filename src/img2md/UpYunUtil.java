@@ -33,7 +33,7 @@ public class UpYunUtil {
 
     public static void main(String[] args) throws Exception {
         for (int i = 0; i < 100; i++) {
-            System.out.println(new Random().nextInt(2));
+            System.out.println(new Random().nextInt(5));
         }
     }
 }

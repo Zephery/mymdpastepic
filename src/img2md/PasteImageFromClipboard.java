@@ -46,12 +46,12 @@ public class PasteImageFromClipboard extends AnAction {
             String imagepath = imageName + temp.replaceAll("-", "") + ".png";
             String callback_url = "http://image.wenzhihuai.com/images/";
             String imageurl = callback_url + imagepath;
-            int ranNum = new Random().nextInt(2);
-            if (ranNum == 1) {
+            int ranNum = new Random().nextInt(5);   //0,1,2
+            if (ranNum == 0 || ranNum == 1) {
                 QiniuUtil.putFileBytes("images", "images/" + imagepath, bytes);
                 insertImageElement(ed, imageurl);
             } else {
-                String upyunCallUrl = "http://upyuncdn.wenzhihuai.com/";
+                String upyunCallUrl = "https://upyuncdn.wenzhihuai.com/";
 //                UpYunUtil.upload(imageFile.getPath(), imagepath);
                 UpYunUtil.uploadFileBytes(bytes, imagepath);
                 insertImageElement(ed, upyunCallUrl + imagepath);
