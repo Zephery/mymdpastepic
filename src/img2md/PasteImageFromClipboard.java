@@ -47,13 +47,18 @@ public class PasteImageFromClipboard extends AnAction {
             String callback_url = "http://image.wenzhihuai.com/images/";
             String imageurl = callback_url + imagepath;
             int ranNum = new Random().nextInt(5);   //0,1,2
-            if (ranNum == 0 || ranNum == 1) {
-                QiniuUtil.putFileBytes("images", "images/" + imagepath, bytes);
+            if (ranNum < 2) {
+                new Thread(() -> QiniuUtil.putFileBytes("images", "images/" + imagepath, bytes)).start();
                 insertImageElement(ed, imageurl);
             } else {
                 String upyunCallUrl = "https://upyuncdn.wenzhihuai.com/";
-//                UpYunUtil.upload(imageFile.getPath(), imagepath);
-                UpYunUtil.uploadFileBytes(bytes, imagepath);
+                new Thread(() -> {
+                    try {
+                        UpYunUtil.uploadFileBytes(bytes, imagepath);
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
+                }).start();
                 insertImageElement(ed, upyunCallUrl + imagepath);
             }
         } catch (Exception eee) {
