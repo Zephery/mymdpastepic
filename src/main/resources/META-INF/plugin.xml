@@ -1,0 +1,29 @@
+<idea-plugin>
+    <id>com.zephery.mymdpastepic</id>
+    <name>mymdpastepic</name>
+    <vendor email="1570631036@qq.com" url="http://www.wenzhihuai.com">wenzhihuai</vendor>
+
+    <description><![CDATA[
+    English description(中文描述在下方):<br><br>
+
+    aaaaaaaaaaaaaaa    English description(中文描述在下方):<br><br>
+
+    ]]></description>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <editorActionHandler action="EditorPaste" implementationClass="com.zephery.img2md.PasteImageHandler"
+                             order="first"/>
+    </extensions>
+
+    <actions>
+        <action id="PastePic" class="com.zephery.img2md.PasteImageFromClipboard" text="PastePic"
+                description="Paste an image from clipboard at the current cursor position">
+            <add-to-group group-id="EditMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="shift meta V"/>
+        </action>
+    </actions>
+</idea-plugin>

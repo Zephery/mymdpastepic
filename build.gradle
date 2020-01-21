@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.intellij' version '0.4.15'
+}
+
+group 'com.zephery'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'com.qiniu', name: 'qiniu-java-sdk', version: '7.2.6'
+    compile group: 'com.upyun', name: 'java-sdk', version: '4.1.4'
+
+}
+
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+intellij {
+    version '2019.3.1'
+}
+patchPluginXml {
+    changeNotes """
+      Add change notes here.<br>
+      <em>most HTML tags may be used</em>"""
+}
