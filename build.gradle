@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.zephery'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 sourceCompatibility = 1.8
 
@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile group: 'com.qiniu', name: 'qiniu-java-sdk', version: '7.2.6'
+    compile group: 'com.qiniu', name: 'qiniu-java-sdk', version: '7.2.28'
     compile group: 'com.upyun', name: 'java-sdk', version: '4.1.4'
 
 }
@@ -22,9 +22,10 @@ dependencies {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     version '2019.3.1'
+    sandboxDirectory = "$project.buildDir/myCustom-sandbox"
 }
 patchPluginXml {
     changeNotes """
-      Add change notes here.<br>
+      2020-02-25 version<br>
       <em>most HTML tags may be used</em>"""
 }
