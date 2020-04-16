@@ -27,7 +27,6 @@ public class QiniuUtil {
         String upToken = auth.uploadToken(bucket);
         try {
             Response response = uploadManager.put(bytes, key, upToken);
-            //解析上传成功的结果
             DefaultPutRet putRet = new Gson().fromJson(response.bodyString(), DefaultPutRet.class);
             System.out.println(putRet.key);
             System.out.println(putRet.hash);
