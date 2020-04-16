@@ -1,15 +1,17 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '0.4.15'
+    id 'org.jetbrains.intellij' version '0.4.18'
 }
 
 group 'com.zephery'
-version '1.0'
+version '0416'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 1.10
 
-repositories {
-    mavenCentral()
+allprojects {
+    repositories {
+        maven{ url 'http://maven.aliyun.com/nexus/content/groups/public/'}
+    }
 }
 
 dependencies {
@@ -21,11 +23,11 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version '2019.3.1'
+    version '2020.1'
     sandboxDirectory = "$project.buildDir/myCustom-sandbox"
 }
 patchPluginXml {
     changeNotes """
-      2020-02-25 version<br>
+      2020-04-16 version<br>
       <em>most HTML tags may be used</em>"""
 }
